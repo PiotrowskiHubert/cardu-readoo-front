@@ -72,7 +72,6 @@ export default defineComponent({
       void loadExpansions()
     })
 
-    // ADMIN: stan dodawania nowej karty
     const isAddFormVisible = ref(false)
     const newCardNumber = ref('')
     const newCardName = ref('')
@@ -123,8 +122,7 @@ export default defineComponent({
       }
     }
 
-    // ADMIN: stan edycji istniejącej karty (name + rarity)
-    const editingKey = ref<string | null>(null) // klucz: expExternalId-cardNumber
+    const editingKey = ref<string | null>(null)
     const editName = ref('')
     const editRarity = ref('')
     const editError = ref<string | null>(null)
@@ -165,7 +163,6 @@ export default defineComponent({
       }
     }
 
-    // ADMIN: usuwanie karty po numerze + expExternalId
     const deletingKey = ref<string | null>(null)
 
     async function handleDelete(card: CardResponse) {
@@ -194,7 +191,6 @@ export default defineComponent({
     )
 
     watch(selectedExpansionName, () => {
-      // zmiana ekspansji przed ponownym wyszukiwaniem: ukryj panel dodawania
       isAddFormVisible.value = false
       resetAddForm()
       cards.value = []
@@ -203,7 +199,6 @@ export default defineComponent({
     })
 
     return {
-      // wyszukiwanie
       expansions,
       isLoadingExpansions,
       loadExpansionsError,
@@ -216,7 +211,6 @@ export default defineComponent({
       handleSubmit,
       hasSearched,
 
-      // admin: dodawanie
       isAddFormVisible,
       newCardNumber,
       newCardName,
@@ -226,7 +220,6 @@ export default defineComponent({
       handleAddCard,
       resetAddForm,
 
-      // admin: edycja
       editingKey,
       editName,
       editRarity,
@@ -236,7 +229,6 @@ export default defineComponent({
       cancelEdit,
       handleSaveEdit,
 
-      // admin: usuwanie
       deletingKey,
       handleDelete,
 
@@ -393,7 +385,6 @@ export default defineComponent({
       </template>
     </section>
 
-    <!-- Panel dodawania nowej karty - tylko dla admina, po wyszukaniu konkretnej ekspansji -->
     <div
       v-if="isAdmin && selectedExpansionName && hasSearched && !isSearchingCards && !searchError"
       class="border-t border-slate-200 pt-3 mt-2"

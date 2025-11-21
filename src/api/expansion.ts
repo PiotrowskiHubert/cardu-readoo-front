@@ -1,4 +1,5 @@
 import { apiUrl } from './config'
+import { useAuthStore } from '@/stores/auth'
 
 export interface ExpansionResponse {
   externalId: string
@@ -17,9 +18,11 @@ export interface PatchExpansionRequest {
 const BASE_URL = apiUrl('/api/expansions')
 
 export async function fetchAllExpansions(): Promise<ExpansionResponse[]> {
+  const auth = useAuthStore()
   const response = await fetch(BASE_URL, {
     method: 'GET',
     headers: {
+      ...auth.authHeaders(),
       Accept: 'application/json',
     },
   })
@@ -32,9 +35,11 @@ export async function fetchAllExpansions(): Promise<ExpansionResponse[]> {
 }
 
 export async function upsertExpansion(payload: UpsertExpansionRequest): Promise<void> {
+  const auth = useAuthStore()
   const response = await fetch(BASE_URL, {
     method: 'POST',
     headers: {
+      ...auth.authHeaders(),
       'Content-Type': 'application/json',
       Accept: 'application/json',
     },
@@ -47,11 +52,13 @@ export async function upsertExpansion(payload: UpsertExpansionRequest): Promise<
 }
 
 export async function patchExpansion(externalId: string, payload: PatchExpansionRequest): Promise<void> {
+  const auth = useAuthStore()
   const url = `${BASE_URL}/${encodeURIComponent(externalId)}`
 
   const response = await fetch(url, {
     method: 'PATCH',
     headers: {
+      ...auth.authHeaders(),
       'Content-Type': 'application/json',
       Accept: 'application/json',
     },
@@ -64,11 +71,13 @@ export async function patchExpansion(externalId: string, payload: PatchExpansion
 }
 
 export async function deleteExpansionByName(name: string): Promise<void> {
+  const auth = useAuthStore()
   const url = `${BASE_URL}/by-name/${encodeURIComponent(name)}`
 
   const response = await fetch(url, {
     method: 'DELETE',
     headers: {
+      ...auth.authHeaders(),
       Accept: 'application/json',
     },
   })

@@ -9,7 +9,6 @@ import OfferSearchView from '@/components/OfferSearchView.vue'
 const auth = useAuthStore()
 const router = useRouter()
 
-// aktywna sekcja ekranu, domyślnie pusty Home
 const activeSection = ref<'Home' | 'ExpansionView' | 'CardSearch' | 'OfferSearch'>('Home')
 
 const isAdmin = computed(() => auth.user?.roles.includes('ROLE_ADMIN'))
@@ -88,7 +87,6 @@ async function handleLogout() {
       </div>
     </header>
 
-    <!-- Główna treść -->
     <main class="flex-1 flex items-center justify-center px-4">
       <p v-if="activeSection === 'Home'" class="text-slate-700 text-base">
         Welcome to the application. Select one of the options in the top menu to continue.

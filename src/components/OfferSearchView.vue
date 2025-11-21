@@ -27,24 +27,20 @@ const isLoadingOffers = ref(false)
 const offersError = ref<string | null>(null)
 const offers = ref<OfferPointResponse[]>([])
 
-// flaga: czy użytkownik wykonał już wyszukiwanie
 const hasSearched = ref(false)
 
 // nowe pola dat
 const fromDate = ref<string | null>(null)
 const toDate = ref<string | null>(null)
 
-// konfiguracja kolorów wykresu (edytowalna przez użytkownika)
 const lineColor = ref<string>('#2563eb')
 const pointColor = ref<string>('#1d4ed8')
 const axisLabelColor = ref<string>('#475569')
 
-// konfigurowalne podpisy tytułu i osi
 const chartTitle = ref<string>('Historia ofert dla wybranej karty')
 const xAxisLabel = ref<string>('Czas wystawienia oferty')
-const yAxisLabel = ref<string>('Cena')
+const yAxisLabel = ref<string>('Price')
 
-// widoczność sekcji konfiguracji wykresu
 const isChartConfigVisible = ref(false)
 
 const canSubmit = computed(() => !!selectedExpansionName.value && !!selectedCardName.value)
@@ -95,7 +91,6 @@ async function handleSubmit() {
   offers.value = []
   hasSearched.value = true
 
-  // budujemy wartości from/to jako pełne ISO, jeśli użytkownik podał datę (bez godziny)
   const fromIso = fromDate.value ? new Date(fromDate.value + 'T00:00:00Z').toISOString() : undefined
   const toIso = toDate.value ? new Date(toDate.value + 'T23:59:59Z').toISOString() : undefined
 
@@ -115,7 +110,6 @@ watch(selectedExpansionName, (newName) => {
     cards.value = []
     selectedCardName.value = null
   }
-  // zmiana ekspansji resetuje wyniki i panel dodawania
   offers.value = []
   offersError.value = null
   hasSearched.value = false
@@ -127,7 +121,6 @@ onMounted(() => {
   void loadExpansions()
 })
 
-// ADMIN: dodawanie nowej oferty
 const isAddOfferVisible = ref(false)
 const newOfferAmount = ref('')
 const newOfferCurrency = ref('')
@@ -172,7 +165,6 @@ async function handleAddOffer() {
     return
   }
 
-  // aktualna data/godzina
   const nowIso = new Date().toISOString()
 
   isSavingOffer.value = true
@@ -190,7 +182,6 @@ async function handleAddOffer() {
     resetAddOfferForm()
     isAddOfferVisible.value = false
 
-    // odśwież oferty dla aktualnych filtrów
     await handleSubmit()
   } catch {
     addOfferError.value = 'Failed to add offer'
@@ -199,7 +190,6 @@ async function handleAddOffer() {
   }
 }
 
-// ADMIN: usuwanie/edycja istniejących ofert (tylko cena)
 const editingOfferId = ref<number | null>(null)
 const editOfferAmount = ref('')
 const editOfferError = ref<string | null>(null)
@@ -261,7 +251,6 @@ async function handleDeleteOffer(offer: OfferPointResponse) {
   }
 }
 
-// Zwiększamy wysokość wykresu, żeby zmieścić etykiety czasu + podpis osi X w viewBox
 const chartWidth = 600
 const chartHeight = 230
 const chartPaddingX = 40
@@ -364,9 +353,6 @@ const yTicks = computed(() => {
   return ticks
 })
 
-// Zakres dat używany do wyświetlania obok wykresu:
-// - jeśli użytkownik podał from/to, używamy ich,
-// - jeśli zostawił puste, bierzemy min/max z listedAt z danych ofert.
 const displayDateRange = computed(() => {
   if (offers.value.length === 0) {
     return { from: null as string | null, to: null as string | null }
@@ -381,7 +367,6 @@ const displayDateRange = computed(() => {
     return { from: fromUi, to: toUi }
   }
 
-  // Brak dat od/do z formularza -> policz z danych
   const times = offers.value
     .map((o) => new Date(o.listedAt).getTime())
     .filter((t) => !Number.isNaN(t))
@@ -425,7 +410,6 @@ function formatOfferDate(iso: string): string {
 
 <template>
   <div class="w-full max-w-5xl bg-white rounded-xl shadow-md p-6 flex flex-col gap-6">
-    <!-- Sekcja sterująca ma być ukryta podczas drukowania -->
     <section class="print:hidden">
       <h2 class="text-xl font-semibold mb-4 text-slate-900">Offer - Search</h2>
 
@@ -493,7 +477,6 @@ function formatOfferDate(iso: string): string {
           </div>
         </div>
 
-        <!-- Przycisk do pokazywania/ukrywania konfiguracji wykresu -->
         <div class="mt-2">
           <button
             type="button"
@@ -505,12 +488,10 @@ function formatOfferDate(iso: string): string {
           </button>
         </div>
 
-        <!-- Sekcja konfiguracji wykresu (kolory + podpisy osi) -->
         <div
           v-if="isChartConfigVisible"
           class="mt-2 space-y-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
         >
-          <!-- Konfiguracja kolorów wykresu -->
           <div class="flex flex-wrap gap-4 text-xs text-slate-700">
             <div class="flex items-center gap-2">
               <label for="offerLineColor" class="font-medium">Line color:</label>
@@ -541,7 +522,6 @@ function formatOfferDate(iso: string): string {
             </div>
           </div>
 
-          <!-- Konfiguracja podpisów osi -->
           <div class="flex flex-wrap gap-4 text-xs text-slate-700">
             <div class="flex flex-col gap-1 min-w-[180px]">
               <label for="offerChartTitle" class="font-medium">Chart title</label>
@@ -591,15 +571,12 @@ function formatOfferDate(iso: string): string {
     <section>
       <h3 class="text-lg font-semibold mb-3 text-slate-900">Search results</h3>
 
-      <!-- Wykres liniowy czas vs cena -->
       <div v-if="offers.length > 0" class="mb-4 overflow-x-auto">
-        <!-- Nagłówek wykresu -->
         <div class="mb-2">
           <span class="block text-sm font-medium text-slate-800">{{ chartTitle }}</span>
         </div>
 
         <div class="flex gap-4 items-start">
-          <!-- Panel z podsumowaniem zapytania po lewej -->
           <div class="text-xs text-slate-700 min-w-[180px] space-y-1">
             <p>
               <span class="font-semibold">Expansion name:</span>
@@ -619,13 +596,11 @@ function formatOfferDate(iso: string): string {
             </p>
           </div>
 
-          <!-- Sam wykres -->
           <div class="flex-1">
             <svg
               :viewBox="`0 0 ${chartWidth} ${chartHeight}`"
               class="w-full max-w-full h-56 bg-slate-50 rounded-md border border-slate-200"
             >
-              <!-- siatka pozioma (cena) -->
               <g stroke="#e5e7eb" stroke-width="1">
                 <line
                   v-for="(tick, idx) in yTicks"
@@ -638,7 +613,6 @@ function formatOfferDate(iso: string): string {
                 />
               </g>
 
-              <!-- siatka pionowa (czas) -->
               <g stroke="#e5e7eb" stroke-width="1">
                 <line
                   v-for="(tick, idx) in xTicks"
@@ -651,7 +625,6 @@ function formatOfferDate(iso: string): string {
                 />
               </g>
 
-              <!-- osie -->
               <line
                 :x1="chartPaddingX"
                 :x2="chartWidth - chartPaddingX"
@@ -669,7 +642,6 @@ function formatOfferDate(iso: string): string {
                 stroke-width="1.5"
               />
 
-              <!-- znaczniki (ticki) na osi Y przy każdej etykiecie ceny -->
               <g stroke="#0f172a" stroke-width="1.2">
                 <line
                   v-for="(tick, idx) in yTicks"
@@ -692,7 +664,6 @@ function formatOfferDate(iso: string): string {
                 />
               </g>
 
-              <!-- podpis osi Y - korzysta z konfigurowalnego tekstu i koloru -->
               <text
                 :x="chartPaddingX - 36"
                 :y="chartPaddingY + (chartHeight - 2 * chartPaddingY) / 2"
@@ -704,7 +675,6 @@ function formatOfferDate(iso: string): string {
                 {{ yAxisLabel }} ({{ offers[0]?.currency ?? '' }})
               </text>
 
-              <!-- podpis osi X - korzysta z konfigurowalnego tekstu i koloru -->
               <text
                 :x="chartPaddingX + (chartWidth - 2 * chartPaddingX) / 2"
                 :y="chartHeight - 4"
@@ -715,7 +685,6 @@ function formatOfferDate(iso: string): string {
                 {{ xAxisLabel }}
               </text>
 
-              <!-- etykiety osi Y (cena) - korzystają z koloru etykiet osi -->
               <g v-for="(tick, idx) in yTicks" :key="'y-label-' + idx">
                 <text
                   :x="chartPaddingX - 6"
@@ -728,7 +697,6 @@ function formatOfferDate(iso: string): string {
                 </text>
               </g>
 
-              <!-- etykiety osi X (czas) - korzystają z koloru etykiet osi -->
               <g v-for="(tick, idx) in xTicks" :key="'x-label-' + idx">
                 <text
                   :x="tick.x"
@@ -741,7 +709,6 @@ function formatOfferDate(iso: string): string {
                 </text>
               </g>
 
-              <!-- linia wykresu - kolor ustawiany przez użytkownika -->
               <path
                 v-if="offerChartPath"
                 :d="offerChartPath"
@@ -750,7 +717,6 @@ function formatOfferDate(iso: string): string {
                 fill="none"
               />
 
-              <!-- punkty na linii - kolor ustawiany przez użytkownika -->
               <circle
                 v-for="(pt, idx) in offerChartDots"
                 :key="idx"
@@ -773,7 +739,6 @@ function formatOfferDate(iso: string): string {
         No offers to display. Select expansion, card and run search.
       </p>
 
-      <!-- Tabela z danymi ofert: powinna być widoczna również w wydruku -->
       <table
         v-else
         class="w-full border border-slate-200 text-sm mt-2"
@@ -860,7 +825,6 @@ function formatOfferDate(iso: string): string {
       <p v-if="editOfferError" class="text-xs text-red-600 mt-2 print:hidden">{{ editOfferError }}</p>
     </section>
 
-    <!-- Panel dodawania oferty - tylko dla admina, po wybraniu ekspansji i karty i po wyszukaniu -->
     <section
       v-if="isAdmin && selectedExpansionName && selectedCardName && hasSearched && !isLoadingOffers && !offersError"
       class="border-t border-slate-200 pt-3 mt-2 print:hidden"

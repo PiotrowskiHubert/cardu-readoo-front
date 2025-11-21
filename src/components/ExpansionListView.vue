@@ -164,7 +164,6 @@ export default defineComponent({
     <p v-else-if="loadError" class="text-sm text-red-600">{{ loadError }}</p>
 
     <template v-else>
-      <!-- Tabela ekspansji -->
       <table class="w-full border border-slate-200 text-sm mb-4">
         <thead class="bg-slate-50">
           <tr>
@@ -186,7 +185,6 @@ export default defineComponent({
           >
             <td class="px-3 py-2 border-b border-slate-100 font-mono">{{ exp.externalId }}</td>
             <td class="px-3 py-2 border-b border-slate-100">
-              <!-- tryb edycji tylko dla jednego wiersza na raz -->
               <template v-if="isAdmin && editingExternalId === exp.externalId">
                 <input
                   v-model="editName"
@@ -243,10 +241,8 @@ export default defineComponent({
         </tbody>
       </table>
 
-      <!-- Obsługa błędów/stanów edycji w jednym miejscu -->
       <p v-if="editError" class="text-xs text-red-600 mb-2">{{ editError }}</p>
 
-      <!-- Panel dodawania nowej ekspansji - tylko dla admina -->
       <div v-if="isAdmin" class="border-t border-slate-200 pt-3 mt-2">
         <button
           type="button"

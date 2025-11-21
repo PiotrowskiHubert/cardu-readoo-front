@@ -1,4 +1,5 @@
 import { apiUrl } from './config'
+import { useAuthStore } from '@/stores/auth'
 
 export interface OfferPointResponse {
   id: number
@@ -31,6 +32,7 @@ export async function fetchOffersByCardName(
   from?: string,
   to?: string,
 ): Promise<OfferPointResponse[]> {
+  const auth = useAuthStore()
   const url = new URL(`${BASE_URL}/by-card-name`, window.location.origin)
   url.searchParams.set('expId', expExternalId)
   url.searchParams.set('cardName', cardName)
@@ -40,6 +42,7 @@ export async function fetchOffersByCardName(
   const response = await fetch(url.toString(), {
     method: 'GET',
     headers: {
+      ...auth.authHeaders(),
       Accept: 'application/json',
     },
   })
@@ -52,9 +55,11 @@ export async function fetchOffersByCardName(
 }
 
 export async function addOffer(payload: AddOfferRequest): Promise<void> {
+  const auth = useAuthStore()
   const response = await fetch(BASE_URL, {
     method: 'POST',
     headers: {
+      ...auth.authHeaders(),
       'Content-Type': 'application/json',
       Accept: 'application/json',
     },
@@ -67,9 +72,11 @@ export async function addOffer(payload: AddOfferRequest): Promise<void> {
 }
 
 export async function patchOffer(id: number, payload: PatchOfferRequest): Promise<void> {
+  const auth = useAuthStore()
   const response = await fetch(`${BASE_URL}/${id}`, {
     method: 'PATCH',
     headers: {
+      ...auth.authHeaders(),
       'Content-Type': 'application/json',
       Accept: 'application/json',
     },
@@ -82,9 +89,11 @@ export async function patchOffer(id: number, payload: PatchOfferRequest): Promis
 }
 
 export async function deleteOffer(id: number): Promise<void> {
+  const auth = useAuthStore()
   const response = await fetch(`${BASE_URL}/${id}`, {
     method: 'DELETE',
     headers: {
+      ...auth.authHeaders(),
       Accept: 'application/json',
     },
   })

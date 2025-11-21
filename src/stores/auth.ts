@@ -9,11 +9,13 @@ interface LoginRequest {
 interface LoginResponse {
   username: string
   roles: string[]
+  token: string
 }
 
 interface User {
   username: string
   roles: string[]
+  token: string
 }
 
 const STORAGE_KEY = 'auth_user'
@@ -23,7 +25,6 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAuthenticated = computed(() => user.value !== null)
 
-  // wczytanie z localStorage przy starcie store'a
   const saved = localStorage.getItem(STORAGE_KEY)
   if (saved) {
     try {
@@ -53,9 +54,19 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = {
       username: data.username,
       roles: data.roles,
+      token: data.token,
     }
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(user.value))
+  }
+
+  function authHeaders(): HeadersInit {
+    if (!user.value?.token) {
+      return {}
+    }
+    return {
+      Authorization: `Bearer ${user.value.token}`,
+    }
   }
 
   function logout() {
@@ -63,5 +74,5 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem(STORAGE_KEY)
   }
 
-  return { user, isAuthenticated, login, logout }
+  return { user, isAuthenticated, login, logout, authHeaders }
 })
