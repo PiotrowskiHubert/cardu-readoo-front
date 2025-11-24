@@ -157,7 +157,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <div class="w-full max-w-3xl bg-white rounded-xl shadow-md p-6">
+  <div class="w-full max-w-6xl mx-auto bg-white rounded-xl shadow-md p-6">
     <h2 class="text-xl font-semibold mb-4 text-slate-900">List of expansions</h2>
 
     <p v-if="isLoading" class="text-sm text-slate-500">Loading expansions...</p>
@@ -250,7 +250,7 @@ export default defineComponent({
           class="inline-flex items-center rounded border border-slate-300 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100"
           @click="isAddFormVisible = !isAddFormVisible"
         >
-          {{ isAddFormVisible ? 'Ukryj formularz' : 'Add expansion' }}
+          {{ isAddFormVisible ? 'Hide form' : 'Add expansion' }}
         </button>
 
         <div

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import ExpansionListView from '@/components/ExpansionListView.vue'
@@ -84,8 +84,8 @@ async function handleLoginSubmit() {
     loginPassword.value = ''
     isUserMenuOpen.value = false
     await router.push({ name: 'home' })
-  } catch (err) {
-    loginErrorMessage.value = 'Nieprawidłowy login lub hasło'
+  } catch {
+    loginErrorMessage.value = 'Invalid username or password'
   } finally {
     isLoginSubmitting.value = false
   }
@@ -117,121 +117,231 @@ async function handleChangePasswordSubmit() {
   changePasswordError.value = ''
 
   if (!canSubmitChangePassword.value) {
-    changePasswordError.value = 'Uzupełnij oba pola nowego hasła identycznymi wartościami.'
+    changePasswordError.value = 'Fill in both new password fields with identical values.'
     return
   }
 
   isChangePasswordSubmitting.value = true
   try {
-    // TODO: wywołanie endpointu zmiany hasła, gdy będzie dostępny
-    // await apiChangePassword({ oldPassword: oldPassword.value, newPassword: newPassword.value })
+    await auth.resetPassword(oldPassword.value, newPassword.value)
 
     isChangePasswordModalOpen.value = false
     oldPassword.value = ''
     newPassword.value = ''
     confirmNewPassword.value = ''
     changePasswordError.value = ''
-  } catch (err) {
-    changePasswordError.value = 'Nie udało się zmienić hasła. Spróbuj ponownie.'
+  } catch {
+    changePasswordError.value = 'Failed to change password. Please try again.'
   } finally {
     isChangePasswordSubmitting.value = false
   }
+}
+
+const isMobileMenuOpen = ref(false)
+const isMobile = ref(false)
+
+function handleResize() {
+  isMobile.value = window.innerWidth < 768
+  if (!isMobile.value) {
+    isMobileMenuOpen.value = false
+  }
+}
+
+onMounted(() => {
+  handleResize()
+  window.addEventListener('resize', handleResize)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', handleResize)
+})
+
+function toggleMobileMenu() {
+  isMobileMenuOpen.value = !isMobileMenuOpen.value
+}
+
+function navigateAndCloseMobile(section: 'Home' | 'ExpansionView' | 'CardSearch' | 'OfferSearch') {
+  activeSection.value = section
+  isMobileMenuOpen.value = false
 }
 </script>
 
 <template>
   <div class="min-h-screen flex flex-col bg-slate-100 relative">
-    <!-- Górny pasek nawigacji -->
-    <header class="w-full bg-slate-900 text-white shadow-md print:hidden">
-      <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-        <div class="flex items-center gap-6">
-          <button
-            type="button"
-            class="relative text-sm font-medium hover:text-blue-300"
-            @click="openHome"
-          >
-            Home
-          </button>
+    <!-- Top navigation bar -->
+    <header class="w-full bg-transparent print:hidden">
+      <div class="max-w-6xl mx-auto px-3 sm:px-4 pt-3">
+        <div class="bg-slate-900 text-white shadow-md rounded-xl sm:rounded-2xl px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-3">
+          <!-- Logo / application name -->
+          <div class="flex items-center gap-2">
+            <span class="text-sm sm:text-base font-semibold tracking-tight">Cardu Readoo</span>
+          </div>
 
-          <button
-            type="button"
-            class="relative text-sm font-medium hover:text-blue-300"
-            @click="openExpansionView"
-          >
-            Expansion
-          </button>
-
-          <button
-            type="button"
-            class="relative text-sm font-medium hover:text-blue-300"
-            @click="openCardSearch"
-          >
-            Card
-          </button>
-
-          <button
-            type="button"
-            class="relative text-sm font-medium hover:text-blue-300"
-            @click="openOfferSearch"
-          >
-            Offer
-          </button>
-        </div>
-
-        <div class="relative flex items-center gap-2 text-sm">
-          <template v-if="isLoggedIn">
+          <!-- Desktop menu -->
+          <nav class="hidden md:flex items-center gap-4">
             <button
               type="button"
-              class="inline-flex items-center gap-1 rounded-lg border border-slate-500 px-3 py-1 text-xs font-medium hover:bg-slate-800"
-              @click="toggleUserMenu"
+              class="relative text-sm font-medium hover:text-blue-300"
+              :class="{ 'text-blue-300': activeSection === 'Home' }"
+              @click="openHome"
             >
-              <span>Hello, {{ auth.user?.username }}</span>
-              <span class="text-[10px]">▼</span>
-            </button>
-            <button
-              type="button"
-              class="rounded-lg border border-slate-500 px-3 py-1 text-xs font-medium hover:bg-slate-800"
-              @click="handleLogout"
-            >
-              Log out
+              Home
             </button>
 
-            <div
-              v-if="isUserMenuOpen"
-              class="absolute right-0 top-full mt-1 w-40 rounded-lg border border-slate-700 bg-slate-900 text-xs shadow-lg z-20"
+            <button
+              type="button"
+              class="relative text-sm font-medium hover:text-blue-300"
+              :class="{ 'text-blue-300': activeSection === 'ExpansionView' }"
+              @click="openExpansionView"
             >
+              Expansion
+            </button>
+
+            <button
+              type="button"
+              class="relative text-sm font-medium hover:text-blue-300"
+              :class="{ 'text-blue-300': activeSection === 'CardSearch' }"
+              @click="openCardSearch"
+            >
+              Card
+            </button>
+
+            <button
+              type="button"
+              class="relative text-sm font-medium hover:text-blue-300"
+              :class="{ 'text-blue-300': activeSection === 'OfferSearch' }"
+              @click="openOfferSearch"
+            >
+              Offer
+            </button>
+          </nav>
+
+          <!-- Right side: user / login -->
+          <div class="relative flex items-center gap-2 text-xs sm:text-sm">
+            <template v-if="isLoggedIn">
               <button
                 type="button"
-                class="block w-full text-left px-3 py-2 hover:bg-slate-800"
-                @click="openChangePasswordModal"
+                class="inline-flex items-center gap-1 rounded-lg border border-slate-500 px-2 sm:px-3 py-1 font-medium hover:bg-slate-800"
+                @click="toggleUserMenu"
               >
-                Change password
+                <span>Hello, {{ auth.user?.username }}</span>
+                <span class="text-[10px]">
+                  ▼
+                </span>
               </button>
-            </div>
-          </template>
-          <template v-else>
+              <button
+                type="button"
+                class="hidden sm:inline-flex rounded-lg border border-slate-500 px-3 py-1 font-medium hover:bg-slate-800"
+                @click="handleLogout"
+              >
+                Log out
+              </button>
+
+              <div
+                v-if="isUserMenuOpen"
+                class="absolute right-0 top-full mt-1 w-44 rounded-lg border border-slate-700 bg-slate-900 text-xs shadow-lg z-20"
+              >
+                <button
+                  type="button"
+                  class="block w-full text-left px-3 py-2 hover:bg-slate-800"
+                  @click="openChangePasswordModal"
+                >
+                  Change password
+                </button>
+                <button
+                  type="button"
+                  class="block w-full text-left px-3 py-2 hover:bg-slate-800 md:hidden"
+                  @click="handleLogout"
+                >
+                  Log out
+                </button>
+              </div>
+            </template>
+            <template v-else>
+              <button
+                type="button"
+                class="rounded-lg border border-slate-500 px-2 sm:px-3 py-1 font-medium hover:bg-slate-800"
+                @click="openLoginModal"
+              >
+                Log in
+              </button>
+            </template>
+
+            <!-- Hamburger button only on mobile -->
             <button
               type="button"
-              class="rounded-lg border border-slate-500 px-3 py-1 text-xs font-medium hover:bg-slate-800"
-              @click="openLoginModal"
+              class="md:hidden inline-flex items-center justify-center rounded border border-slate-600 p-1 ml-1 bg-slate-800/80"
+              @click="toggleMobileMenu"
             >
-              Log in
+              <span class="sr-only">Toggle navigation</span>
+              <span v-if="!isMobileMenuOpen" class="text-lg leading-none">☰</span>
+              <span v-else class="text-lg leading-none">✕</span>
             </button>
-          </template>
+          </div>
         </div>
+
+        <!-- Mobile dropdown menu, visually attached to rounded bar -->
+        <nav
+          v-if="isMobileMenuOpen"
+          class="md:hidden mt-1 rounded-xl sm:rounded-2xl bg-slate-900 text-white shadow-md overflow-hidden"
+        >
+          <div class="px-4 py-2 flex flex-col gap-1">
+            <button
+              type="button"
+              class="w-full text-left py-1.5 text-sm hover:text-blue-300"
+              :class="{ 'text-blue-300': activeSection === 'Home' }"
+              @click="navigateAndCloseMobile('Home')"
+            >
+              Home
+            </button>
+            <button
+              type="button"
+              class="w-full text-left py-1.5 text-sm hover:text-blue-300"
+              :class="{ 'text-blue-300': activeSection === 'ExpansionView' }"
+              @click="navigateAndCloseMobile('ExpansionView')"
+            >
+              Expansion
+            </button>
+            <button
+              type="button"
+              class="w-full text-left py-1.5 text-sm hover:text-blue-300"
+              :class="{ 'text-blue-300': activeSection === 'CardSearch' }"
+              @click="navigateAndCloseMobile('CardSearch')"
+            >
+              Card
+            </button>
+            <button
+              type="button"
+              class="w-full text-left py-1.5 text-sm hover:text-blue-300"
+              :class="{ 'text-blue-300': activeSection === 'OfferSearch' }"
+              @click="navigateAndCloseMobile('OfferSearch')"
+            >
+              Offer
+            </button>
+          </div>
+        </nav>
       </div>
     </header>
 
-    <main class="flex-1 flex items-center justify-center px-4">
-      <p v-if="activeSection === 'Home'" class="text-slate-700 text-base">
-        Welcome to the application. Select one of the options in the top menu to continue.
-      </p>
-      <ExpansionListView v-else-if="activeSection === 'ExpansionView'" :is-admin="isAdmin" />
-      <CardSearchView v-else-if="activeSection === 'CardSearch'" :is-admin="isAdmin" />
-      <OfferSearchView v-else-if="activeSection === 'OfferSearch'" />
+    <main class="flex-1 flex px-3 sm:px-4 py-4">
+      <div class="w-full max-w-6xl mx-auto">
+        <div
+          v-if="activeSection === 'Home'"
+          class="w-full bg-white rounded-xl shadow-md p-6"
+        >
+          <p class="text-slate-700 text-base sm:text-lg">
+            Welcome to the application. Select one of the options in the top menu to continue.
+          </p>
+        </div>
+        <div v-else>
+          <ExpansionListView v-if="activeSection === 'ExpansionView'" :is-admin="isAdmin" />
+          <CardSearchView v-else-if="activeSection === 'CardSearch'" :is-admin="isAdmin" />
+          <OfferSearchView v-else-if="activeSection === 'OfferSearch'" />
+        </div>
+      </div>
     </main>
 
-    <!-- Modal logowania -->
+    <!-- Login modal -->
     <div
       v-if="isLoginModalOpen"
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
@@ -255,7 +365,7 @@ async function handleChangePasswordSubmit() {
         <form @submit.prevent="handleLoginSubmit" class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-slate-700 mb-1" for="login-username">
-              Login
+              Username
             </label>
             <input
               id="login-username"
@@ -294,7 +404,7 @@ async function handleChangePasswordSubmit() {
       </div>
     </div>
 
-    <!-- Modal zmiany hasła -->
+    <!-- Change password modal -->
     <div
       v-if="isChangePasswordModalOpen"
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/60"

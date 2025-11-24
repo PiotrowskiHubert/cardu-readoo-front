@@ -18,6 +18,12 @@ interface User {
   token: string
 }
 
+interface ChangePasswordRequest {
+  username: string
+  oldPassword: string
+  newPassword: string
+}
+
 const STORAGE_KEY = 'auth_user'
 
 export const useAuthStore = defineStore('auth', () => {
@@ -69,10 +75,35 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function resetPassword(oldPassword: string, newPassword: string): Promise<void> {
+    if (!user.value?.username) {
+      throw new Error('User not logged in')
+    }
+
+    const body: ChangePasswordRequest = {
+      username: user.value.username,
+      oldPassword,
+      newPassword,
+    }
+
+    const response = await fetch('/api/auth/reset-password', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...authHeaders(),
+      },
+      body: JSON.stringify(body),
+    })
+
+    if (!response.ok) {
+      throw new Error('Password change failed')
+    }
+  }
+
   function logout() {
     user.value = null
     localStorage.removeItem(STORAGE_KEY)
   }
 
-  return { user, isAuthenticated, login, logout, authHeaders }
+  return { user, isAuthenticated, login, logout, authHeaders, resetPassword }
 })

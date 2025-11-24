@@ -36,8 +36,8 @@ const lineColor = ref<string>('#2563eb')
 const pointColor = ref<string>('#1d4ed8')
 const axisLabelColor = ref<string>('#475569')
 
-const chartTitle = ref<string>('Historia ofert dla wybranej karty')
-const xAxisLabel = ref<string>('Czas wystawienia oferty')
+const chartTitle = ref<string>('Offer history for selected card')
+const xAxisLabel = ref<string>('Offer listing time')
 const yAxisLabel = ref<string>('Price')
 
 const isChartConfigVisible = ref(false)
@@ -82,7 +82,7 @@ async function handleSubmit() {
 
   const card = cards.value.find((c) => c.cardName === selectedCardName.value)
   if (!card) {
-    submitError.value = 'Nie znaleziono wybranej karty dla tej ekspansji'
+    submitError.value = 'Selected card was not found for this expansion'
     return
   }
 
@@ -420,19 +420,19 @@ function formatOfferDate(iso: string): string {
 </script>
 
 <template>
-  <div class="w-full max-w-5xl bg-white rounded-xl shadow-md p-6 flex flex-col gap-6">
+  <div class="w-full bg-white rounded-xl shadow-md p-4 sm:p-6 flex flex-col gap-6">
     <section class="print:hidden">
-      <h2 class="text-xl font-semibold mb-4 text-slate-900">Offer - Search</h2>
+      <h2 class="text-lg sm:text-xl font-semibold mb-4 text-slate-900">Offer - Search</h2>
 
       <form @submit.prevent="handleSubmit" class="space-y-4">
-        <div class="flex flex-col gap-2 max-w-md">
+        <div class="flex flex-col gap-2 max-w-md w-full">
           <label for="offerExpansionName" class="text-sm font-medium text-slate-700">Expansion name</label>
           <select
             id="offerExpansionName"
             v-model="selectedExpansionName"
             class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
-            <option :value="null">-- wybierz ekspansję --</option>
+            <option :value="null">-- select expansion --</option>
             <option
               v-for="exp in expansions"
               :key="exp.externalId"
@@ -445,7 +445,7 @@ function formatOfferDate(iso: string): string {
           <p v-if="loadExpansionsError" class="text-xs text-red-600">{{ loadExpansionsError }}</p>
         </div>
 
-        <div class="flex flex-col gap-2 max-w-md">
+        <div class="flex flex-col gap-2 max-w-md w-full">
           <label for="offerCardName" class="text-sm font-medium text-slate-700">Card name</label>
           <select
             id="offerCardName"
@@ -453,7 +453,7 @@ function formatOfferDate(iso: string): string {
             :disabled="!selectedExpansionName || isLoadingCards || cards.length === 0"
             class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-slate-100 disabled:text-slate-400"
           >
-            <option :value="null">-- wybierz kartę --</option>
+            <option :value="null">-- select card --</option>
             <option
               v-for="card in cards"
               :key="card.cardNumber + card.cardName"
@@ -466,8 +466,8 @@ function formatOfferDate(iso: string): string {
           <p v-if="loadCardsError" class="text-xs text-red-600">{{ loadCardsError }}</p>
         </div>
 
-        <div class="flex flex-col gap-3 md:flex-row md:items-end md:gap-4">
-          <div class="flex flex-col gap-2 max-w-xs">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-4">
+          <div class="flex flex-col gap-2 max-w-xs w-full">
             <label for="offerFromDate" class="text-sm font-medium text-slate-700">Date from (optional)</label>
             <input
               id="offerFromDate"
@@ -477,7 +477,7 @@ function formatOfferDate(iso: string): string {
             />
           </div>
 
-          <div class="flex flex-col gap-2 max-w-xs">
+          <div class="flex flex-col gap-2 max-w-xs w-full">
             <label for="offerToDate" class="text-sm font-medium text-slate-700">Date to (optional)</label>
             <input
               id="offerToDate"
@@ -572,7 +572,7 @@ function formatOfferDate(iso: string): string {
         <button
           type="submit"
           :disabled="!canSubmit || isLoadingOffers"
-          class="inline-flex justify-center items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          class="inline-flex justify-center items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors w-full sm:w-auto"
         >
           {{ isLoadingOffers ? 'Searching...' : 'Search offers' }}
         </button>
@@ -587,158 +587,160 @@ function formatOfferDate(iso: string): string {
           <span class="block text-sm font-medium text-slate-800">{{ chartTitle }}</span>
         </div>
 
-        <div class="flex gap-4 items-start">
-          <div class="text-xs text-slate-700 min-w-[180px] space-y-1">
+        <div class="flex flex-col lg:flex-row gap-4 items-start">
+          <div class="text-xs text-slate-700 min-w-[180px] space-y-1 w-full lg:w-auto">
             <p>
               <span class="font-semibold">Expansion name:</span>
-              <span class="ml-1">{{ selectedExpansionName || '-' }}</span>
+              <span class="ml-1 break-all">{{ selectedExpansionName || '-' }}</span>
             </p>
             <p>
               <span class="font-semibold">Card name:</span>
-              <span class="ml-1">{{ selectedCardName || '-' }}</span>
+              <span class="ml-1 break-all">{{ selectedCardName || '-' }}</span>
             </p>
-            <p>
+            <p class="flex flex-wrap gap-1">
               <span class="font-semibold">Data od:</span>
-              <span class="ml-1">{{ displayDateRange.from ?? '-' }}</span>
+              <span>{{ displayDateRange.from ?? '-' }}</span>
             </p>
-            <p>
+            <p class="flex flex-wrap gap-1">
               <span class="font-semibold">Data do:</span>
-              <span class="ml-1">{{ displayDateRange.to ?? '-' }}</span>
+              <span>{{ displayDateRange.to ?? '-' }}</span>
             </p>
           </div>
 
-          <div class="flex-1">
-            <svg
-              :viewBox="`0 0 ${chartWidth} ${chartHeight}`"
-              class="w-full max-w-full h-56 bg-slate-50 rounded-md border border-slate-200"
-            >
-              <g stroke="#e5e7eb" stroke-width="1">
+          <div class="flex-1 min-w-0">
+            <div class="w-full overflow-x-auto">
+              <svg
+                :viewBox="`0 0 ${chartWidth} ${chartHeight}`"
+                class="w-full min-w-[320px] h-56 bg-slate-50 rounded-md border border-slate-200"
+              >
+                <g stroke="#e5e7eb" stroke-width="1">
+                  <line
+                    v-for="(tick, idx) in yTicks"
+                    :key="'y-grid-' + idx"
+                    :x1="chartPaddingX"
+                    :x2="chartWidth - chartPaddingX"
+                    :y1="tick.y"
+                    :y2="tick.y"
+                    stroke-dasharray="2 2"
+                  />
+                </g>
+
+                <g stroke="#e5e7eb" stroke-width="1">
+                  <line
+                    v-for="(tick, idx) in xTicks"
+                    :key="'x-grid-' + idx"
+                    :x1="tick.x"
+                    :x2="tick.x"
+                    :y1="chartPaddingY"
+                    :y2="chartHeight - chartPaddingY"
+                    stroke-dasharray="2 2"
+                  />
+                </g>
+
                 <line
-                  v-for="(tick, idx) in yTicks"
-                  :key="'y-grid-' + idx"
                   :x1="chartPaddingX"
                   :x2="chartWidth - chartPaddingX"
-                  :y1="tick.y"
-                  :y2="tick.y"
-                  stroke-dasharray="2 2"
+                  :y1="chartHeight - chartPaddingY"
+                  :y2="chartHeight - chartPaddingY"
+                  stroke="#0f172a"
+                  stroke-width="1.5"
                 />
-              </g>
-
-              <g stroke="#e5e7eb" stroke-width="1">
                 <line
-                  v-for="(tick, idx) in xTicks"
-                  :key="'x-grid-' + idx"
-                  :x1="tick.x"
-                  :x2="tick.x"
+                  :x1="chartPaddingX"
+                  :x2="chartPaddingX"
                   :y1="chartPaddingY"
                   :y2="chartHeight - chartPaddingY"
-                  stroke-dasharray="2 2"
+                  stroke="#0f172a"
+                  stroke-width="1.5"
                 />
-              </g>
 
-              <line
-                :x1="chartPaddingX"
-                :x2="chartWidth - chartPaddingX"
-                :y1="chartHeight - chartPaddingY"
-                :y2="chartHeight - chartPaddingY"
-                stroke="#0f172a"
-                stroke-width="1.5"
-              />
-              <line
-                :x1="chartPaddingX"
-                :x2="chartPaddingX"
-                :y1="chartPaddingY"
-                :y2="chartHeight - chartPaddingY"
-                stroke="#0f172a"
-                stroke-width="1.5"
-              />
+                <g stroke="#0f172a" stroke-width="1.2">
+                  <line
+                    v-for="(tick, idx) in yTicks"
+                    :key="'y-tick-' + idx"
+                    :x1="chartPaddingX - 4"
+                    :x2="chartPaddingX"
+                    :y1="tick.y"
+                    :y2="tick.y"
+                  />
+                </g>
 
-              <g stroke="#0f172a" stroke-width="1.2">
-                <line
-                  v-for="(tick, idx) in yTicks"
-                  :key="'y-tick-' + idx"
-                  :x1="chartPaddingX - 4"
-                  :x2="chartPaddingX"
-                  :y1="tick.y"
-                  :y2="tick.y"
-                />
-              </g>
+                <g stroke="#0f172a" stroke-width="1.2">
+                  <line
+                    v-for="(tick, idx) in xTicks"
+                    :key="'x-tick-' + idx"
+                    :x1="tick.x"
+                    :x2="tick.x"
+                    :y1="chartHeight - chartPaddingY"
+                    :y2="chartHeight - chartPaddingY + 4"
+                  />
+                </g>
 
-              <g stroke="#0f172a" stroke-width="1.2">
-                <line
-                  v-for="(tick, idx) in xTicks"
-                  :key="'x-tick-' + idx"
-                  :x1="tick.x"
-                  :x2="tick.x"
-                  :y1="chartHeight - chartPaddingY"
-                  :y2="chartHeight - chartPaddingY + 4"
-                />
-              </g>
-
-              <text
-                :x="chartPaddingX - 36"
-                :y="chartPaddingY + (chartHeight - 2 * chartPaddingY) / 2"
-                text-anchor="middle"
-                font-size="10"
-                :fill="axisLabelColor"
-                :transform="`rotate(-90, ${chartPaddingX - 36}, ${chartPaddingY + (chartHeight - 2 * chartPaddingY) / 2})`"
-              >
-                {{ yAxisLabel }} ({{ offers[0]?.currency ?? '' }})
-              </text>
-
-              <text
-                :x="chartPaddingX + (chartWidth - 2 * chartPaddingX) / 2"
-                :y="chartHeight - 4"
-                text-anchor="middle"
-                font-size="10"
-                :fill="axisLabelColor"
-              >
-                {{ xAxisLabel }}
-              </text>
-
-              <g v-for="(tick, idx) in yTicks" :key="'y-label-' + idx">
                 <text
-                  :x="chartPaddingX - 6"
-                  :y="tick.y + 4"
-                  text-anchor="end"
+                  :x="chartPaddingX - 36"
+                  :y="chartPaddingY + (chartHeight - 2 * chartPaddingY) / 2"
+                  text-anchor="middle"
                   font-size="10"
                   :fill="axisLabelColor"
+                  :transform="`rotate(-90, ${chartPaddingX - 36}, ${chartPaddingY + (chartHeight - 2 * chartPaddingY) / 2})`"
                 >
-                  {{ tick.label }}
+                  {{ yAxisLabel }} ({{ offers[0]?.currency ?? '' }})
                 </text>
-              </g>
 
-              <g v-for="(tick, idx) in xTicks" :key="'x-label-' + idx">
                 <text
-                  :x="tick.x"
-                  :y="chartHeight - chartPaddingY + 14"
+                  :x="chartPaddingX + (chartWidth - 2 * chartPaddingX) / 2"
+                  :y="chartHeight - 4"
                   text-anchor="middle"
                   font-size="10"
                   :fill="axisLabelColor"
                 >
-                  {{ tick.label }}
+                  {{ xAxisLabel }}
                 </text>
-              </g>
 
-              <path
-                v-if="offerChartPath"
-                :d="offerChartPath"
-                :stroke="lineColor"
-                stroke-width="2"
-                fill="none"
-              />
+                <g v-for="(tick, idx) in yTicks" :key="'y-label-' + idx">
+                  <text
+                    :x="chartPaddingX - 6"
+                    :y="tick.y + 4"
+                    text-anchor="end"
+                    font-size="10"
+                    :fill="axisLabelColor"
+                  >
+                    {{ tick.label }}
+                  </text>
+                </g>
 
-              <circle
-                v-for="(pt, idx) in offerChartDots"
-                :key="idx"
-                :cx="pt.x"
-                :cy="pt.y"
-                r="3"
-                :fill="pointColor"
-                stroke="white"
-                stroke-width="1"
-              />
-            </svg>
+                <g v-for="(tick, idx) in xTicks" :key="'x-label-' + idx">
+                  <text
+                    :x="tick.x"
+                    :y="chartHeight - chartPaddingY + 14"
+                    text-anchor="middle"
+                    font-size="10"
+                    :fill="axisLabelColor"
+                  >
+                    {{ tick.label }}
+                  </text>
+                </g>
+
+                <path
+                  v-if="offerChartPath"
+                  :d="offerChartPath"
+                  :stroke="lineColor"
+                  stroke-width="2"
+                  fill="none"
+                />
+
+                <circle
+                  v-for="(pt, idx) in offerChartDots"
+                  :key="idx"
+                  :cx="pt.x"
+                  :cy="pt.y"
+                  r="3"
+                  :fill="pointColor"
+                  stroke="white"
+                  stroke-width="1"
+                />
+              </svg>
+            </div>
           </div>
         </div>
       </div>
