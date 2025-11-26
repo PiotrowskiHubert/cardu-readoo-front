@@ -12,7 +12,7 @@ export interface OfferPointResponse {
 export interface AddOfferRequest {
   expExternalId: string
   cardNumber: string
-  amount: string
+  amount: number
   currency: string
   listedAt: string
   cardName: string
@@ -20,7 +20,7 @@ export interface AddOfferRequest {
 }
 
 export interface PatchOfferRequest {
-  amount?: string | null
+  amount?: number | null
   currency?: string | null
   listedAt?: string | null
 }
