@@ -240,7 +240,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <div class="w-full max-w-5xl bg-white rounded-xl shadow-md p-6 flex flex-col gap-6">
+  <div class="w-full max-w-6xl mx-auto bg-white rounded-xl shadow-md p-6 flex flex-col gap-6">
     <section>
       <h2 class="text-xl font-semibold mb-4 text-slate-900">Card - Search</h2>
 
@@ -252,7 +252,7 @@ export default defineComponent({
             v-model="selectedExpansionName"
             class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
-            <option :value="null">-- wybierz ekspansję --</option>
+            <option :value="null">-- select expansion --</option>
             <option
               v-for="exp in expansions"
               :key="exp.externalId"
@@ -290,96 +290,100 @@ export default defineComponent({
       </p>
 
       <template v-else>
-        <table class="w-full border border-slate-200 text-sm mt-2 mb-3">
-          <thead class="bg-slate-50">
-            <tr>
-              <th class="px-3 py-2 text-left font-medium text-slate-700 border-b border-slate-200">Expansion External ID</th>
-              <th class="px-3 py-2 text-left font-medium text-slate-700 border-b border-slate-200">Card Number</th>
-              <th class="px-3 py-2 text-left font-medium text-slate-700 border-b border-slate-200">Card Name</th>
-              <th class="px-3 py-2 text-left font-medium text-slate-700 border-b border-slate-200">Rarity</th>
-              <th
-                v-if="isAdmin"
-                class="px-3 py-2 text-right font-medium text-slate-700 border-b border-slate-200 w-48"
+        <div class="w-full overflow-x-auto">
+          <table class="min-w-full border border-slate-200 text-sm mt-2 mb-3">
+            <thead class="bg-slate-50">
+              <tr>
+                <th class="px-3 py-2 text-left font-medium text-slate-700 border-b border-slate-200 whitespace-nowrap">Expansion External ID</th>
+                <th class="px-3 py-2 text-left font-medium text-slate-700 border-b border-slate-200 whitespace-nowrap">Card Number</th>
+                <th class="px-3 py-2 text-left font-medium text-slate-700 border-b border-slate-200 whitespace-nowrap">Card Name</th>
+                <th class="px-3 py-2 text-left font-medium text-slate-700 border-b border-slate-200 whitespace-nowrap">Rarity</th>
+                <th
+                  v-if="isAdmin"
+                  class="px-3 py-2 text-right font-medium text-slate-700 border-b border-slate-200 w-48 whitespace-nowrap"
+                >
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="card in cards"
+                :key="`${card.expExternalId}-${card.cardNumber}`"
+                class="odd:bg-white even:bg-slate-50"
               >
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="card in cards"
-              :key="`${card.expExternalId}-${card.cardNumber}`"
-              class="odd:bg-white even:bg-slate-50"
-            >
-              <td class="px-3 py-2 border-b border-slate-100 font-mono">{{ card.expExternalId }}</td>
-              <td class="px-3 py-2 border-b border-slate-100 font-mono">{{ card.cardNumber }}</td>
-              <td class="px-3 py-2 border-b border-slate-100">
-                <template v-if="isAdmin && editingKey === `${card.expExternalId}-${card.cardNumber}`">
-                  <input
-                    v-model="editName"
-                    type="text"
-                    class="w-full rounded border border-slate-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </template>
-                <template v-else>
-                  {{ card.cardName }}
-                </template>
-              </td>
-              <td class="px-3 py-2 border-b border-slate-100">
-                <template v-if="isAdmin && editingKey === `${card.expExternalId}-${card.cardNumber}`">
-                  <input
-                    v-model="editRarity"
-                    type="text"
-                    class="w-full rounded border border-slate-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </template>
-                <template v-else>
-                  {{ card.cardRarity }}
-                </template>
-              </td>
-              <td
-                v-if="isAdmin"
-                class="px-3 py-2 border-b border-slate-100 text-right space-x-2"
-              >
-                <template v-if="editingKey === `${card.expExternalId}-${card.cardNumber}`">
-                  <button
-                    type="button"
-                    class="inline-flex items-center rounded bg-blue-600 px-2 py-1 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-                    :disabled="isSavingEdit"
-                    @click="handleSaveEdit(card)"
-                  >
-                    Save
-                  </button>
-                  <button
-                    type="button"
-                    class="inline-flex items-center rounded border border-slate-300 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100"
-                    :disabled="isSavingEdit"
-                    @click="cancelEdit"
-                  >
-                    Cancel
-                  </button>
-                </template>
-                <template v-else>
-                  <button
-                    type="button"
-                    class="inline-flex items-center rounded border border-slate-300 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100"
-                    @click="startEdit(card)"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    class="inline-flex items-center rounded bg-red-600 px-2 py-1 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50"
-                    :disabled="deletingKey === `${card.expExternalId}-${card.cardNumber}`"
-                    @click="handleDelete(card)"
-                  >
-                    Delete
-                  </button>
-                </template>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                <td class="px-3 py-2 border-b border-slate-100 font-mono whitespace-nowrap">{{ card.expExternalId }}</td>
+                <td class="px-3 py-2 border-b border-slate-100 font-mono whitespace-nowrap">{{ card.cardNumber }}</td>
+                <td class="px-3 py-2 border-b border-slate-100">
+                  <template v-if="isAdmin && editingKey === `${card.expExternalId}-${card.cardNumber}`">
+                    <input
+                      v-model="editName"
+                      type="text"
+                      class="w-full rounded border border-slate-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      @keyup.enter="handleSaveEdit(card)"
+                    />
+                  </template>
+                  <template v-else>
+                    {{ card.cardName }}
+                  </template>
+                </td>
+                <td class="px-3 py-2 border-b border-slate-100">
+                  <template v-if="isAdmin && editingKey === `${card.expExternalId}-${card.cardNumber}`">
+                    <input
+                      v-model="editRarity"
+                      type="text"
+                      class="w-full rounded border border-slate-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      @keyup.enter="handleSaveEdit(card)"
+                    />
+                  </template>
+                  <template v-else>
+                    {{ card.cardRarity }}
+                  </template>
+                </td>
+                <td
+                  v-if="isAdmin"
+                  class="px-3 py-2 border-b border-slate-100 text-right space-x-2 whitespace-nowrap"
+                >
+                  <template v-if="editingKey === `${card.expExternalId}-${card.cardNumber}`">
+                    <button
+                      type="button"
+                      class="inline-flex items-center rounded bg-blue-600 px-2 py-1 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                      :disabled="isSavingEdit"
+                      @click="handleSaveEdit(card)"
+                    >
+                      Save
+                    </button>
+                    <button
+                      type="button"
+                      class="inline-flex items-center rounded border border-slate-300 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100"
+                      :disabled="isSavingEdit"
+                      @click="cancelEdit"
+                    >
+                      Cancel
+                    </button>
+                  </template>
+                  <template v-else>
+                    <button
+                      type="button"
+                      class="inline-flex items-center rounded border border-slate-300 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100"
+                      @click="startEdit(card)"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      class="inline-flex items-center rounded bg-red-600 px-2 py-1 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                      :disabled="deletingKey === `${card.expExternalId}-${card.cardNumber}`"
+                      @click="handleDelete(card)"
+                    >
+                      Delete
+                    </button>
+                  </template>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
         <p v-if="editError" class="text-red-600 text-sm mt-2">{{ editError }}</p>
       </template>
@@ -426,6 +430,7 @@ export default defineComponent({
             v-model="newCardRarity"
             type="text"
             class="w-full rounded border border-slate-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            @keyup.enter="handleAddCard"
           />
         </div>
 
