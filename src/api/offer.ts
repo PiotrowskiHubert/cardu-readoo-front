@@ -6,6 +6,7 @@ export interface OfferPointResponse {
   listedAt: string
   amount: number
   currency: string
+  cardName?: string
 }
 
 export interface AddOfferRequest {
@@ -33,7 +34,9 @@ export async function fetchOffersByCardName(
   to?: string,
 ): Promise<OfferPointResponse[]> {
   const auth = useAuthStore()
-  const url = new URL(`${BASE_URL}/by-card-name`, window.location.origin)
+
+  // GET /api/offers?expId=...&cardName=...&from=...&to=...
+  const url = new URL(BASE_URL, window.location.origin)
   url.searchParams.set('expId', expExternalId)
   url.searchParams.set('cardName', cardName)
   if (from) url.searchParams.set('from', from)

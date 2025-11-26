@@ -18,7 +18,7 @@ async function onSubmit() {
     await auth.login(username.value, password.value)
     await router.push({ name: 'home' })
   } catch (err) {
-    errorMessage.value = 'Nieprawidłowy login lub hasło'
+    errorMessage.value = 'Invalid username or password'
   } finally {
     isSubmitting.value = false
   }
@@ -33,7 +33,7 @@ async function onSubmit() {
       <form @submit.prevent="onSubmit" class="space-y-4">
         <div>
           <label class="block text-sm font-medium text-slate-700 mb-1" for="username">
-            Login
+            Username
           </label>
           <input
             id="username"
