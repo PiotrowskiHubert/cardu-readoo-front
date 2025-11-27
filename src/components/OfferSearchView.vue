@@ -71,8 +71,7 @@ const fromDate = ref<string | null>(null)
 const toDate = ref<string | null>(null)
 
 // konfiguracja wykresu liniowego
-const lineColor = ref<string>('#2563eb')
-const pointColor = ref<string>('#1d4ed8')
+// usunięte nieużywane lineColor/pointColor, pozostawiamy tylko axisLabelColor
 const axisLabelColor = ref<string>('#475569')
 
 const chartTitle = ref<string>('Offer history for selected card')
@@ -82,7 +81,7 @@ const yAxisLabel = ref<string>('Price')
 const isChartConfigVisible = ref(false)
 
 // konfiguracja wykresu słupkowego
-const barColor = ref<string>('#22c55e')
+// usunięty nieużywany barColor, zostaje tylko kolor opisów osi
 const barAxisLabelColor = ref<string>('#475569')
 const barChartTitle = ref<string>('Offers count per card')
 const barXAxisLabel = ref<string>('Card name')
@@ -227,6 +226,22 @@ const newOfferCurrency = ref('PLN')
 const addOfferError = ref<string | null>(null)
 const isSavingOffer = ref(false)
 
+function sanitizeNumericInput(raw: string): string {
+  // pozwalamy na cyfry oraz JEDEN separator dziesiętny (kropka lub przecinek)
+  let result = ''
+  let hasSeparator = false
+  for (const ch of raw) {
+    if (ch >= '0' && ch <= '9') {
+      result += ch
+    } else if ((ch === '.' || ch === ',') && !hasSeparator) {
+      result += ch
+      hasSeparator = true
+    }
+    // inne znaki są ignorowane
+  }
+  return result
+}
+
 function resetAddOfferForm() {
   newOfferAmount.value = ''
   newOfferCurrency.value = 'PLN'
@@ -270,7 +285,7 @@ async function handleAddOffer() {
     await addOffer({
       expExternalId: card.expExternalId,
       cardNumber: card.cardNumber,
-      amount: normalizedAmount,
+      amount: amountNum,
       currency,
       listedAt: nowIso,
       cardName: card.cardName,
@@ -325,7 +340,7 @@ async function handleSaveOffer(offer: OfferPointResponse) {
   isSavingEditOffer.value = true
   try {
     await patchOffer(offer.id, {
-      amount: normalizedAmount,
+      amount: amountNum,
       currency: null,
       listedAt: null,
     })
@@ -590,17 +605,12 @@ function removeSeries(id: number) {
     }
   }
 
-  // aktualizacja widoczności akcji admina:
-  // - 0 serii: brak wyników, akcje nie mają sensu
-  // - 1 seria: przywracamy akcje admina
-  // - >1 serii: akcje ukryte (jak po dodaniu wielu serii)
+  // aktualizacja widoczności akcji admina w uproszczonej formie
   if (series.value.length === 0) {
     hasSearched.value = false
     showAdminOfferActions.value = false
-  } else if (series.value.length === 1) {
-    showAdminOfferActions.value = true
   } else {
-    showAdminOfferActions.value = false
+    showAdminOfferActions.value = series.value.length === 1
   }
 }
 </script>
@@ -710,7 +720,7 @@ function removeSeries(id: number) {
           <span class="block text-sm font-medium text-slate-800">{{ barChartTitle }}</span>
           <button
             type="button"
-            class="inline-flex items-center gap-1 text-xs text-green-700 hover:text-green-900"
+            class="inline-flex items-center gap-1 text-xs text-blue-700 hover:text-blue-900"
             @click="isBarChartConfigVisible = !isBarChartConfigVisible"
           >
             <span class="underline">Bar chart configuration</span>
@@ -1249,6 +1259,7 @@ function removeSeries(id: number) {
                       type="text"
                       class="w-24 rounded border border-slate-300 px-2 py-1 text-xs text-right focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       @keyup.enter="handleSaveOffer(offer)"
+                      @input="(e) => { const target = e.target as HTMLInputElement | null; if (target) editOfferAmount = sanitizeNumericInput(target.value) }"
                     />
                   </template>
                   <template v-else>
@@ -1332,6 +1343,7 @@ function removeSeries(id: number) {
             v-model="newOfferAmount"
             type="text"
             class="w-full rounded border border-slate-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            @input="(e) => { const target = e.target as HTMLInputElement | null; if (target) newOfferAmount = sanitizeNumericInput(target.value) }"
           />
         </div>
         <div class="flex flex-col gap-1">
